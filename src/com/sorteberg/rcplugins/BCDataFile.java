@@ -59,7 +59,7 @@ public class BCDataFile {
 
 		//We have to create and add a new settings node
 		JSONObject settingsObj = new JSONObject();
-		settingsObj.put("frequence", 10);
+		settingsObj.put("interval", 10);
 		settingsObj.put("slowdown-count", 10);
 		settingsObj.put("slowdown-factor", 5);
 		mainObj.put("settings", settingsObj);

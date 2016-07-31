@@ -7,6 +7,7 @@ public class RCBroadcaster extends JavaPlugin{
 
 	private UserStatusList userStatusList = new UserStatusList(getLogger());
 	private MessageProcessor messageProcessor;
+	private BCScheduler BCScheduler;
 	
 	@Override
     public void onEnable() {
@@ -47,27 +48,35 @@ public class RCBroadcaster extends JavaPlugin{
     		// The scheduler needs a pointer to the Message processor.
     		// This must be created before the creation of the scheduler.
     		//
-    		
+    		getLogger().info("A1"); 
+
 			messageProcessor = new MessageProcessor(
 					getLogger(),
 					(JSONArray) dataFile.get("messages"),
 					userStatusList
 					);
+			if(messageProcessor == null){
+        	    getLogger().info("Error creating the Message Processor.");
+    			loadedOK=false;			
+			}
     		
+    		getLogger().info("A2"); 
     		
     		
     		//
     		// If and when the data file is loaded successfully, 
     		// we can create a BCScheduler to send messages regular to players.
     		//
-    		
-    		BCScheduler BCScheduler = null;
-    		if(loadedOK == true)		
+    		getLogger().info("A3"); 
+    		if(loadedOK == true){
     			BCScheduler = new BCScheduler(
     					getLogger(),
     					dataFile,
     					messageProcessor);
-    	    
+    			
+    		}
+    		getLogger().info("A4"); 
+
     		//
     		// If all preparations went well, register necessary events 
     		// and start the BCScheduler.

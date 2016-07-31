@@ -2,6 +2,7 @@ package com.sorteberg.rcplugins;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 //import org.bukkit.entity.Player;
 //import org.bukkit.Bukkit;
 //import org.json.simple.JSONObject;
@@ -19,12 +20,13 @@ public class BCListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event)
     {
-    	userStatusList.Add(event.getPlayer());
-    	//.test=event.getPlayer().getName();
-    	//event.setJoinMessage("Hei, " + event.getPlayer().getName() + ". Du er en ku!");
-    	//Bukkit.broadcastMessage("Velkommen til ku-serveren!");
-    	//Player p = event.getPlayer();
-    	//p.sendMessage("Mooo!");
+    	userStatusList.Join(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event)
+    {
+    	userStatusList.Quit(event.getPlayer());
     }
 
 }
