@@ -8,12 +8,15 @@ import java.util.logging.Logger;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 
 public class BCDataFile {
-	//private RCBroadcaster plugin;
 	private static String dataFileName = "RC-Broadcaster.json";
 	private static String pluginName = "rc-broadcaster";
 	private static int versionNumber = 1;
@@ -83,7 +86,8 @@ public class BCDataFile {
 		
 		try {
 			try (FileWriter file = new FileWriter(dataFolder + "/" + dataFileName)) {
-				file.write(mainObj.toJSONString());
+				Gson gson = new GsonBuilder().setPrettyPrinting().create();
+				file.write(gson.toJson(mainObj));
 			}
 			
 		} catch (IOException e) {

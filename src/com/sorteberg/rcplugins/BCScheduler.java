@@ -2,8 +2,6 @@ package com.sorteberg.rcplugins;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
-
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 public class BCScheduler {
@@ -26,13 +24,9 @@ public class BCScheduler {
 			MessageProcessor messageProcessor) {
 		try{
 			this.logger = logger;
-			logger.info("1");
 			settingsObj= (JSONObject)mainObject.get("settings");
-			logger.info("2");
 			this.messageProcessor = messageProcessor;
-			logger.info("3");
 			timer = new Timer();
-			logger.info("4");
 			logger.info(
 					String.format(
 							"Message interval: %1d seconds", 
