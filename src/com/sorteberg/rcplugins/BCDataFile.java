@@ -16,28 +16,39 @@ import com.google.gson.GsonBuilder;
 
 
 public class BCDataFile {
+	
+	// All data will be stored in RC-Broadcaster.json in the
+	// plugin's default data folder.
 	private static String dataFileName = "RC-Broadcaster.json";
-	private static String pluginName = "rc-broadcaster";
-	private static int versionNumber = 1;
-	private BCLogger logger;
-
 	private File dataFolder;
 	
+	// The datafile is identified by plugin name and version number.
+	private static String pluginName = "rc-broadcaster";
+	private static int versionNumber = 1;
+	
+	// A pointer to the logger created 
+	// in main class is used for logging purpose.
+	private BCLogger logger;
+
+	// Pointers to the logger and data folder are received via constructor.
 	public BCDataFile(BCLogger logger, File dataFolder) {
-	this.logger = logger;
-	this.dataFolder = dataFolder;
+		this.logger = logger;
+		this.dataFolder = dataFolder;
 	}
 
+	// Returns true if the dataFolder is created. 
 	public boolean dataFolderExist(){
 		File file = new File(dataFolder.getAbsolutePath());
 		return file.exists();
 	}
 
+	// Returns true if the data file exists in dataFolder.
 	public boolean dataFileExist(){
 		File file = new File(dataFolder, dataFileName);
 		return file.exists();
 	}
 	
+	// Returns true if a new dataFolder is created.
 	public boolean createDataFolder(){
 		File file = new File(dataFolder.getAbsolutePath());
 		if(file.mkdir())
@@ -46,20 +57,20 @@ public class BCDataFile {
 			return false;
 	}
 	
-	
+	// Creates a new data file with default content.
 	@SuppressWarnings("unchecked")
 	public boolean createDataFile(){
 		
-		//We need a main object to store all three children
+		// We need a main object to store all three children
 		JSONObject mainObj = new JSONObject();
 
-		//We have to create and add a new header node
+		// We have to create and add a new header node
 		JSONObject headerObj = new JSONObject();
 		headerObj.put("type", pluginName);
 		headerObj.put("ver", versionNumber);	
 		mainObj.put("header", headerObj);
 
-		//We have to create and add a new settings node
+		// We have to create and add a new settings node
 		JSONObject settingsObj = new JSONObject();
 		settingsObj.put("interval", 10);
 		settingsObj.put("slowdown-count", 10);
@@ -84,8 +95,9 @@ public class BCDataFile {
 		messageObjects.add(messageObj);
 		
 		mainObj.put("messages", messageObjects);
-		
+
 		try {
+			// Write the new data file to the dataFolder
 			try (FileWriter file = new FileWriter(dataFolder + "/" + dataFileName)) {
 				Gson gson = new GsonBuilder().setPrettyPrinting().create();
 				file.write(gson.toJson(mainObj));
@@ -97,6 +109,9 @@ public class BCDataFile {
 		return true;
 	}
 
+	// Reads the dataFile from dataFolder and puts the content in a JSONObject.
+	// Returns the entire JSONObject if the header is valid.
+	// Updates the loggers logging level before return.
 	public JSONObject parseDataFile()
 	{
         JSONParser parser = new JSONParser();
@@ -104,20 +119,24 @@ public class BCDataFile {
         try {
 			Object obj = parser.parse(new FileReader(dataFolder + "/" + dataFileName));
 
+			// We will return entire JSON if valid. 
+			// Header is extracted for the validation,
+			// and settings is extracted to set defined logging level.
 			JSONObject mainObj =  (JSONObject) obj;
 			JSONObject headerObj = (JSONObject) mainObj.get("header");
 			JSONObject settingsObj = (JSONObject) mainObj.get("settings");
 			
+			// Check if the plugin name is correct
 			String jPluginName = (String)headerObj.get("type");
 			if( !jPluginName.equals(pluginName)){
 				logger.log(0,"Data file: " + jPluginName +  " is an invalid plugin name.");
 				return mainObj;
 			}
-			else{
-				logger.setMaxLevel((int)settingsObj.get("trace-level")); 
-				logger.log(2,"Data file: OK");
-			}
 			
+			// Set the loggers trace level
+			logger.setMaxLevel((int)settingsObj.get("trace-level")); 
+			
+			// Return the entire file
 			logger.log(2,"Data file parsing: OK");
 	        return mainObj;
 			

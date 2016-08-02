@@ -7,12 +7,22 @@ import org.json.simple.JSONObject;
 
 public class MessageProcessor {
 
+	// A pointer to the logger created 
+	// in main class is used for logging purpose.
 	private BCLogger logger;
+
+	// The userStatusList contains a list containing 
+	// information about all users logged on since last server restart.
 	private UserStatusList userStatusList;
+	
+	// Messages from the dataFile are stored in arrays, one for 
+	// startup messages and one for recurring messages.
 	private List<String> startupMessages = new ArrayList<String>();
 	private List<String> recurringMessages = new ArrayList<String>();
 
 
+	// Pointers to the logger, the MessageNode from the JSON data object
+	// and the empty UserStatusList are received via the constructor.
 	public MessageProcessor(
 			BCLogger logger, 
 			JSONArray messageArray, 
@@ -20,15 +30,19 @@ public class MessageProcessor {
 		try{
 			this.logger = logger;
 			this.userStatusList = userStatusList;
+			
+			// check all messages in the JSON and split them
+			// into the two message objects.
+			// Messages marked as not enabled are ignored.
 			for(int i = 0; i < messageArray.size(); i++)
 			{
 			    JSONObject msg = (JSONObject)messageArray.get(i);
 			    String msgType = (String)msg.get("type");
-			    if(msgType.equals("startup")){
+			    if(msgType.equals("startup") && (int)msg.get("type") == 1){
 			    	startupMessages.add((String)msg.get("message"));
 			    	logger.log(3,"Startup message loaded: " + (String)msg.get("message"));
 			    }
-			    else if(msgType.equals("recurring")){
+			    else if(msgType.equals("recurring") && (int)msg.get("type") == 1){
 			    	recurringMessages.add((String)msg.get("message"));
 			    	logger.log(3,"Recurring message loaded: " + (String)msg.get("message"));
 			    }
