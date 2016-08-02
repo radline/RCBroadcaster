@@ -2,20 +2,19 @@ package com.sorteberg.rcplugins;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 public class MessageProcessor {
 
-	private Logger logger;
+	private BCLogger logger;
 	private UserStatusList userStatusList;
 	private List<String> startupMessages = new ArrayList<String>();
 	private List<String> recurringMessages = new ArrayList<String>();
 
 
 	public MessageProcessor(
-			Logger logger, 
+			BCLogger logger, 
 			JSONArray messageArray, 
 			UserStatusList userStatusList) {
 		try{
@@ -27,17 +26,17 @@ public class MessageProcessor {
 			    String msgType = (String)msg.get("type");
 			    if(msgType.equals("startup")){
 			    	startupMessages.add((String)msg.get("message"));
-			    	logger.info("Startup message loaded: " + (String)msg.get("message"));
+			    	logger.log(3,"Startup message loaded: " + (String)msg.get("message"));
 			    }
 			    else if(msgType.equals("recurring")){
 			    	recurringMessages.add((String)msg.get("message"));
-			    	logger.info("Recurring message loaded: " + (String)msg.get("message"));
+			    	logger.log(3,"Recurring message loaded: " + (String)msg.get("message"));
 			    }
 			}
 
 		}
 		catch(Exception e){
-			logger.info("MessageProcessor construction: FALSE. " + e.getMessage());
+			logger.log(0,"MessageProcessor construction: FALSE. " + e.getMessage());
 		}
 	}
 	public boolean SendMessages()
@@ -55,7 +54,8 @@ public class MessageProcessor {
 			    								userStatus.nextMessage));
 
 					    		userStatus.nextMessage++;
-					    		logger.info("Sendt startup message " 
+					    		logger.log(2,
+					    				"Sendt startup message " 
 					    				+ userStatus.nextMessage 
 					    				+ " to " 
 					    				+ userStatus.player.getName()); 
@@ -73,7 +73,8 @@ public class MessageProcessor {
 			    						recurringMessages.get(
 			    								userStatus.nextMessage));
 
-					    		logger.info("Sendt recurring message " 
+					    		logger.log(2,
+					    				"Sendt recurring message " 
 					    				+ userStatus.nextMessage 
 					    				+ " (" + recurringMessages.get(
 			    								userStatus.nextMessage) + ")"
@@ -88,14 +89,14 @@ public class MessageProcessor {
 		    			}
 		    		} //if(userStatus.joined)
 		    		else{
-		    			logger.info(userStatus.player.getName() + " is offline");
+		    			logger.log(2,userStatus.player.getName() + " is offline");
 		    		} //else (userStatus.joined)
 		    	} //if(userStatus != null)
 		    }
 			return true;
 		}
 		catch(Exception e){
-			logger.info("MessageProcessor construction: FALSE. " + e.getMessage());
+			logger.log(0,"MessageProcessor construction: FALSE. " + e.getMessage());
 			return false;
 		}
 		

@@ -1,13 +1,12 @@
 package com.sorteberg.rcplugins;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Logger;
 import org.json.simple.JSONObject;
 
 public class BCScheduler {
 
 	private Timer timer;
-	private Logger logger;
+	private BCLogger logger;
 	private JSONObject settingsObj;
 	
 	// The userStatusList is created in RCBroadcaster and 
@@ -19,7 +18,7 @@ public class BCScheduler {
 	// For convenience the data object is split into separate objects
 	// for settings and messages.
 	public BCScheduler(
-			Logger logger, 
+			BCLogger logger, 
 			JSONObject mainObject, 
 			MessageProcessor messageProcessor) {
 		try{
@@ -27,7 +26,8 @@ public class BCScheduler {
 			settingsObj= (JSONObject)mainObject.get("settings");
 			this.messageProcessor = messageProcessor;
 			timer = new Timer();
-			logger.info(
+			logger.log(
+					2, 
 					String.format(
 							"Message interval: %1d seconds", 
 							getInterval())
@@ -35,7 +35,7 @@ public class BCScheduler {
 			
 		}
 		catch(Exception e){
-			logger.info("Error constructing BCScheduler " + e.getMessage());
+			logger.log(0,"Error constructing BCScheduler " + e.getMessage());
 			
 		}
 	}
@@ -58,7 +58,7 @@ public class BCScheduler {
 				messageProcessor.SendMessages();
 			}
 			catch(Exception e){
-				logger.info("RemindTask.run: ERROR " + e.getMessage());
+				logger.log(0,"RemindTask.run: ERROR " + e.getMessage());
 			}
 			Schedule();
 			

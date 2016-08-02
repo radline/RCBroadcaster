@@ -1,6 +1,6 @@
 name: RC-Broadcaster
 main: com.sorteberg.rcplugins.RCBroadcaster
-version: 0.8.1 (alpha)
+version: 0.8.2 (alpha)
 author: hans.olav@sorteberg.com
 description: Raaholt Crafting Broadcaster Plugin
 commands:

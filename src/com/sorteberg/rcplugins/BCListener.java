@@ -13,7 +13,7 @@ public class BCListener implements Listener {
 	//represented locally by a private pointer.
 	private UserStatusList userStatusList;
 	
-	public BCListener(RCBroadcaster plugin, UserStatusList userStatusList){
+	public BCListener(UserStatusList userStatusList){
 		this.userStatusList = userStatusList;
 	}
 	

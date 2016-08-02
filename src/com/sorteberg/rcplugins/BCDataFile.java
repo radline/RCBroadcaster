@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -20,11 +19,11 @@ public class BCDataFile {
 	private static String dataFileName = "RC-Broadcaster.json";
 	private static String pluginName = "rc-broadcaster";
 	private static int versionNumber = 1;
-	private Logger logger;
+	private BCLogger logger;
 
 	private File dataFolder;
 	
-	public BCDataFile(Logger logger, File dataFolder) {
+	public BCDataFile(BCLogger logger, File dataFolder) {
 	this.logger = logger;
 	this.dataFolder = dataFolder;
 	}
@@ -65,6 +64,8 @@ public class BCDataFile {
 		settingsObj.put("interval", 10);
 		settingsObj.put("slowdown-count", 10);
 		settingsObj.put("slowdown-factor", 5);
+		settingsObj.put("debug-level", 1);
+		settingsObj.put("data-source", "local");
 		mainObj.put("settings", settingsObj);
 		
 		JSONObject messageObj;
@@ -72,13 +73,13 @@ public class BCDataFile {
 
 		messageObj = new JSONObject();
 		messageObj.put("type", "startup");
-		messageObj.put("enabled", "1");
+		messageObj.put("enabled", 1);
 		messageObj.put("message", "Get ready to receive RC-Broadcaster Messages!");
 		messageObjects.add(messageObj);
 		
 		messageObj = new JSONObject();
 		messageObj.put("type", "recurring");
-		messageObj.put("enabled", "1");
+		messageObj.put("enabled", 1);
 		messageObj.put("message", "I'm still here!");
 		messageObjects.add(messageObj);
 		
@@ -105,28 +106,30 @@ public class BCDataFile {
 
 			JSONObject mainObj =  (JSONObject) obj;
 			JSONObject headerObj = (JSONObject) mainObj.get("header");
+			JSONObject settingsObj = (JSONObject) mainObj.get("settings");
 			
 			String jPluginName = (String)headerObj.get("type");
 			if( !jPluginName.equals(pluginName)){
-				logger.info("Data file: " + jPluginName +  " is an invalid plugin name.");
+				logger.log(0,"Data file: " + jPluginName +  " is an invalid plugin name.");
 				return mainObj;
 			}
 			else{
-				logger.info("Data file: OK");
+				logger.setMaxLevel((int)settingsObj.get("trace-level")); 
+				logger.log(2,"Data file: OK");
 			}
 			
-			logger.info("Data file parsing: OK");
+			logger.log(2,"Data file parsing: OK");
 	        return mainObj;
 			
 			
 		} catch (FileNotFoundException e) {
-			logger.info(e.toString());
+			logger.log(0,e.toString());
 			return null;
 		} catch (IOException e) {
-			logger.info(e.toString());
+			logger.log(0,e.toString());
 			return null;
 		} catch (ParseException e) {
-			logger.info(e.toString());
+			logger.log(0,e.toString());
 			return null;		
 		}
 	}

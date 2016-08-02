@@ -5,6 +5,7 @@ import org.json.simple.JSONArray;
 
 public class RCBroadcaster extends JavaPlugin{
 
+	private BCLogger logger = new BCLogger(1,getLogger());
 	private UserStatusList userStatusList = new UserStatusList(getLogger());
 	private MessageProcessor messageProcessor;
 	private BCScheduler bcScheduler;
@@ -19,7 +20,9 @@ public class RCBroadcaster extends JavaPlugin{
     		//
     		
     		//If the plugin's data folder don't exist, we have to create it.
-    		BCDataFile BCDataFile = new BCDataFile(getLogger(), getDataFolder());
+    		BCDataFile BCDataFile = new BCDataFile(
+    				logger, 
+    				getDataFolder());
     		if(!BCDataFile.dataFolderExist()){
     			BCDataFile.createDataFolder();
     		}
@@ -27,10 +30,10 @@ public class RCBroadcaster extends JavaPlugin{
     		//If the data file don't exist, we have to create a new one with default content.
     		if(!BCDataFile.dataFileExist()){
     			if(BCDataFile.createDataFile() == true){
-        	    	getLogger().info("Data file not found. New, default file created.");    				
+        	    	logger.log(1,"Data file not found. New, default file created.");    				
     			}
         	    else{
-        	    	getLogger().info("Data file not found. Error creating new file in " + getDataFolder().getAbsolutePath());
+        	    	logger.log(0,"Data file not found. Error creating new file in " + getDataFolder().getAbsolutePath());
         	    	loadedOK=false;
         	    }
     		}
@@ -40,7 +43,7 @@ public class RCBroadcaster extends JavaPlugin{
     		
     		JSONObject dataFile = BCDataFile.parseDataFile();
     		if(dataFile == null){
-        	    getLogger().info("The data file is not received by the Plugin class.");
+    			logger.log(0,"The data file is not received by the Plugin class.");
     			loadedOK=false;
     		}
 
@@ -50,12 +53,12 @@ public class RCBroadcaster extends JavaPlugin{
     		//
 
 			messageProcessor = new MessageProcessor(
-					getLogger(),
+					logger,
 					(JSONArray) dataFile.get("messages"),
 					userStatusList
 					);
 			if(messageProcessor == null){
-        	    getLogger().info("Error creating the Message Processor.");
+				logger.log(0,"Error creating the Message Processor.");
     			loadedOK=false;			
 			}
     		
@@ -67,11 +70,11 @@ public class RCBroadcaster extends JavaPlugin{
     		if(loadedOK == true){
     			
     			bcScheduler = new BCScheduler(
-    					getLogger(),
+    					logger,
     					dataFile,
     					messageProcessor);
     			if(bcScheduler == null){
-            	    getLogger().info("Error creating Scheduler.");
+    				logger.log(1,"Error creating Scheduler.");
         			loadedOK=false;			
     			}
     			
@@ -83,23 +86,20 @@ public class RCBroadcaster extends JavaPlugin{
     	    //
     		if(loadedOK == true){
         	    getServer().getPluginManager().registerEvents(
-        	    		new BCListener(
-        	    				this,
-        	    				userStatusList), 
+        	    		new BCListener(userStatusList), 
         	    		this);
         	    
         	    
-        	    
         	    bcScheduler.Schedule();
-    	    	getLogger().info("Broadcaster enabled successfully.");
+        	    logger.log(1,"Broadcaster enabled successfully.");
     	    }
     	    else{
-    	    	getLogger().info("RC-Broadcaster is loaded, but will not run due to errors.");
+    	    	logger.log(0,"RC-Broadcaster is loaded, but will not run due to errors.");
     	    }
     		
     	}
     	catch (Exception e){
-    	    getLogger().info("Error loading Plugin: " + e.getMessage());
+    		logger.log(0,"Error loading Plugin: " + e.getMessage());
     	}
     }
  
