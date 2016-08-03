@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<meta name="author" content="Hans Olav Sorteberg">
+	<meta name="description" content="Description of the Functional description of the RC-Broadcaster">
+	
+	<title>RC-Plugins Dokumentasjon - RC-Broadcaster</title>
+
+	<style>
+		div{ margin: 0px 0px 5px 0px; }
+		h1{margin: 30px 0px -20px 0px;};
+		table{ border:none; }
+		td{ border:0px; min-width: 120px;}
+		.content{max-width: 800px;}
+		.tr-top{ background-color: black; color: white; }
+		.docstatus{background-color: yellow; text-align:center; padding: 5px; border: 1px solid;}
+		.important{font-weight: bold; color: red;}
+	</style>
+
+</head>
+<body lang="nb-NO">
+<div class="content">
+
+<div>
+	<table style="width:100%; font-size: 60%">
+		<tr>
+			<td><a href="index.html">&larr;Tilbake til innholdsfortegnelsen</a></td>
+			<td style="text-align:center;">Skrevet av<br>Hans Olav Sorteberg</td>
+			<td style="text-align:right;">Dokumentversjon 1.1<br>Publisert 2016-08-01</td>
+		</tr>
+	</table>
+	 
+</div>
+<hr>
+<div class="docstatus">
+	RC-Broadcaster er i Alpha. 
+	Kun deler av funksjonaliteten beskrevet i dette dokumentet er implementert.
+	<br>Implementert kode er ikke testet fullt ut, og feilsituasjoner kan oppstå.
+	<br>For full status, se kildekode.
+ </div>
+<h1>RC-Broadcaster v0.8.2 alpha</h1>
+<h2>Funksjonell beskrivelse</h2>
+
+<h3>Om dokumentet</h3>
+
+<h4>Målgruppe</h4>
+<div>
+	Følgende målgrupper vil kunne ha nytte av å lese dette dokumentet:
+	<ul>
+		<li>Personer som skal installere og konfigurere RC-Broadcaster.</li>
+		<li>Personer som skal publisere meldinger til spillere ved hjelp av denne broadcasteren.</li>
+		<li>Personer som skal teste og feilsøke broadcasteren.</li>
+		<li>Personer som skal vedlikeholde og forbedre RC-Broadcaster</li>
+	</ul>
+</div>
+
+<h4>Dokumentets innhold</h4>
+<div>
+	Dette dokumentet gir en generell beskrivelse av RC-Broadcaster på et funksjonelt nivå.
+	Det beskriver i grove trekk hva broadcasteren gjør, 
+	hvordan broadcasteren installeres og konfigureres,
+	og hvordan man legger inn meldinger til spillere.  
+</div>
+
+<h3>Endringer</h3>
+<div>
+	I dette avsnittet beskrives endringer for hver enkelt versjon. 
+	Denne informasjonen er nyttig under uttesting og rekonfigurering, 
+	og gir hint om hvilke deler av broadcasteren som bør gjennomgå omfattende testing.
+</div>
+
+<div>
+	<h4>v 0.8.1 alpha</h4>
+	Version 0.8.1  alpha er første versjon av RC-Broadcaster som testes utenfor labben.
+	Funksjonaliteten er begrenset, og omfatter følgende: 	 
+	<ul>
+		<li>Default datafil opprettes for pluginen, 
+		inneholdende nødvendige innstillinger og noen testmeldinger.</li>
+		<li>Datafilen sjekkes for pluginkode og versjonsnummer. 
+		Eksekvering avbrytes om denne sjekken feiler.</li>
+		<li>Broadcasteren oppretter liste over brukere etter hvert som de logges inn, 
+		og holder rede på hvilken melding de skal se neste gang meldinger skal kringkastes.</li>
+		<li>Brukere som logger ut blir markert som inaktive frem til de logger inn igjen.</li>
+		<li>En bruker som logger inn på nytt merkes som aktiv, 
+		og visning av meldinger fortsetter med neste melding på meldingslisten.</li>
+		<li>Det skilles mellom oppstartsmeldinger som kun vises en gang (etter serverstart)
+		og meldinger som vises intervallmessig gjennom hele spilleforløpet.
+		Mekanisme for nedbremsing er ikke implementert.</li>
+		<li>Fargekoding og tegnstil fungerer, men bare om man benytter seg av MOTD koder.</li>
+	</ul>
+
+</div>
+	<h4>v 0.8.2 alpha</h4>
+	<div class="important">
+	Datafilen RC-Broadcaster.json må slettes før denne versonen installeres og lastes
+	første gang. 
+	</div>
+	<ul>
+		<li>I JSon datafilen er datatypen for meldingenes enabled-verdier 
+		endret fra streng til integer.
+		Siden mekanismen for oppgradering av datafilene ikke er implementert i denne versjonen,
+		må datafilen slettes før testing igangsettes, eventuelt endres manuelt.</li>
+		<li>Funksjonen for å skru meldinger av og på er nå igangsatt. Kun  meldinger merket med
+		Enabled=1 vises.</li>
+		<li>Det er opprettet en ny setting navnsatt trace-level. 
+		Denne bestemmer hvor mye som skrives til Minecraft-loggen under oppstart og eksekvering.</li>
+		<li></li>
+		<li></li>
+	</ul>
+
+<h3>Generell beskrivelse av broadcasteren</h3>
+<div>
+	RC-Broadcaster er en plugin til Minecraft (Spigot) som publiserer meldinger fra administrator til spillere.
+	Meldingene skrives inn i en JSon-formattert tekstfil av administrator, 
+	sammen med informasjon om når og hvordan meldingene skal vises. 
+	Denne filen lastes ved oppstart av Minecraft, 
+	og meldingene sendes til påloggede klienter. Meldingene kategoriseres, 
+	slik at man kan angi hvorvidt meldingen kun skal vises ved pålogging, 
+	eller regelmessig under spillets gang.    	 
+</div>
+
+<div>
+	RC-Broadcaster er ikke en "ekte" broadcaster, 
+	da den sender meldinger enkeltvis til hver enkelt påloggede bruker, 
+	og ikke samlet til samtlige brukere slik en tradisjonell broadcaster gjør. 
+	Dette er gjort for bedre å kunne styre hvor ofte meldingene skal sendes til hver bruker. 
+	Enkeltmeldinger tillater også at kommende versjoner av broadcasteren kan sende skreddersydde 
+	meldinger til hver enkelt bruker.
+</div>
+
+<div>
+	Meldinger og innstillinger lagres som sagt i tekstfiler, 
+	men modulen forberedes for alternativ lagring av meldinger i SQL-database 
+	(senere versjoner). 
+</div>
+
+
+<h3>Installasjon og oppstart</h3>
+
+<div>
+	RC-Broadcaster installeres ved at den kopieres til plugin-katalogen.
+	Den vil deretter lastes automatisk av Minecraft når denne startes. 
+	Pluginens <b>datafil</b>, RC-Broadcaster.json, genereres automatisk ved første gangs oppstart. 
+</div>
+<div>
+	Ved senere igangkjøring sjekkes versjonsnummeret i datafilen. 
+	Om en nyere versjon av RC-Broadcaster installeres, vil datafilen oppgraderes automatisk.
+	Informasjon om en slik oppdatering vil finnes i Minecraft-loggen. 	
+</div>
+
+<div>
+	Meldingsfilen inneholder både de meldingene som skal vises for brukerne, 
+	samt informasjon om hvordan disse meldingene skal vises. 
+	Den inneholder også en toppnode som identifiserer filtypen og versjonsnummer for meldingsfilen.
+</div>
+
+<div>
+	Toppnoden <b>header</b> identifiserer filtypen og versjonsnummeret, og må ikke endres. 
+</div>
+
+<div>
+	Noden med innstillinger, <b>settings</b>, inneholder innstillinger. 
+	Standardverdiene som opprettes ved første gangs oppstart er "rimelige" verdier, 
+	og bør fungere brukbart i de fleste tilfeller.
+	Om ønskelig kan disse endres før restart, se avsnitt "Datafilens utforming".   	
+</div>
+
+<div>
+	Meldingene som skal vises for brukerne kan endres i seksjonen <b>messages</b>.
+	For hver melding angis <b>type</b> og <b>message</b>. Type gis en av verdiene <b>startup</b> eller <b>recurring</b>.
+	Meldinger av typen startup vises kun en gang ved oppstart, 
+	mens meldinger av typen recurring vises regelmessig gjennom spillets gang.
+</div>
+
+<div>
+	For å laste den endrede datafilen, må Minecraft lastes på nytt.
+</div>
+
+<h3>Lasting av RC-Broadcaster</h3>
+
+
+<div>
+	Om RC-Broadcaster ikke finner en gyldig header-node i datafilen under oppstart, 
+	avbrytes lastingen med at RC-Broadcaster skriver en feilmelding i Minecraft-loggen.
+</div>
+<div>
+	Om versjonsnummeret i datafilen er lavere enn RC-Broadcaster sitt versjonsnummer,
+	vil RC-Broadcaster forsøke å oppgradere datafilen. Om dette lykkes, 
+	vil RC-Broadcaster fortsette oppstartsprosedyren som vanlig.
+	Om det feiler, vil dette skrives til Minecraft-loggen, og lastingen termineres.
+</div>
+<div>
+	Innstillinger og Meldinger leses inn i modulen ved oppstart, og lagres i minnet for hurtig gjenfinning.
+	Når en bruker logger på, vises først alle oppstartsmeldingene. 
+	Når dette er gjort, vises regelmessige meldinger så lenge brukeren er pålogget.
+	<br>
+</div>
+
+<h3>Ved brukerpålogging</h3>
+
+<div>
+	Det første som skjer når en bruker logger seg på, er at det opprettes et objekt (brukerstatus-objekt) 
+	i serverens minne for å holde orden på visninger for brukeren.
+	Når dette er gjort, vises oppstartsmeldingene en etter en, 
+	og ett flagg settes i brukerstatus-objektet for å vise at jobben er gjort.
+</div>
+
+<h3>Visning av standardmeldinger</h3>
+<div>
+	Etter at alle oppstartsmeldingene er vist, fortsetter RC-Broadcaster med å vise repeterende meldinger.
+	Hver gang det har gått et antall sekunder angitt i  datafilens <b>/settings/frequence</b> parameter, 
+	trigges Broadcaster til å sende en melding til hver av brukerne. 
+	Brukerstatus-objektet holder orden på hvilken melding som ble sendt sist til hver enkelt,
+	og sender den neste som befinner seg i lista. 
+	Når alle meldingene er sendt, starter den på nytt med førse melding. 
+</div>
+
+<div>
+	En av egenskapene til RC-Broadcaster er at den øker tiden mellom visning av meldinger når meldingene er vist et gitt antall ganger. 
+	Antall ganger den skal vises før frekvensen settes ned, angis under  <b>/settings/slowdown-count</b>.
+	Hver gang en bruker har sett alle meldingene, oppdateres brukerstatus-objektet med antall visninger. 
+	Når antall visninger lagret i dette objektet passerer antall visninger definert i slowdown-count, 
+	økes tiden med faktoren angitt i <b>/settings/slowdown-factor</b>. 
+	Om denne faktoren er satt til 2, vil pausen mellom hver visning dobles.
+	Om faktoren er satt til 10, vil pausen ti-dobles.
+</div>
+
+<h3>Datafilens utforming</h3>
+
+<div>
+	<b>Merk:</b> Meldingsfilen er <i>case-sensitive</i>, det vil si at det skilles mellom store og små bokstaver.
+	<b>Startup</b> med stor S tolkes dermed som noe annet enn <b>startup</b> med liten s. 
+</div>
+
+<h4>Nodebeskrivelse</h4>
+	<table border="1">
+		<tr class="tr-top">
+			<td colspan=3><b>Header-noden</b></td>
+		</tr>
+		<tr>
+			<td><b>Parameter</b></td>
+			<td><b>Eksempelverdi</b></td>
+			<td><b>Forklaring</b></td>
+		</tr>
+		<tr>
+			<td>type</td>
+			<td>rc-broadcaster</td>
+			<td>Denne skal alltid være rc-broadcaster. </td>
+		</tr>
+		<tr>
+			<td>version</td>
+			<td>1.0</td>
+			<td>Viser datafilens versjonsnummer. 
+			Kan benyttes for automatisk oppgradering ved installasjon av plugins med høyrere versionsnummer.</td>
+		</tr>
+		<tr class="tr-top" >
+			<td colspan=3><b>Settings-noden</b></td>
+		</tr>
+		<tr>
+			<td><b>Parameter</b></td>
+			<td><b>Eksempelverdi</b></td>
+			<td><b>Forklaring</b></td>
+		</tr>
+		<tr>
+			<td>frequence</td>
+			<td>120</td>
+			<td>Denne angir tiden RC-Broadcaster venter etter oppstart og første gangs visning av repeterende meldinger
+			til spillerne, alternativt tiden som går etter at RC-Broadcaster er ferdig med å sende meldinger, og frem til
+			neste forsendelse starter.</td>
+		</tr>
+		<tr>
+			<td>slowdown-count</td>
+			<td>10</td>
+			<td>Pausen mellom hver gang en melding vises kan økes etter et gitt antall visninger.
+			Antall ganger meldingen skal vises før pausen økes angis her. 
+			Om denne verdien settes til 0, koples denne mekanismen ut.
+			</td>
+		</tr>
+		<tr>
+			<td>slowdown-factor</td>
+			<td>10</td>
+			<td>Her angis hvor mye pausen skal økes. Dette angis som en faktor, 
+			slik at en verdi på 5 øker pausen fra for eksempel 120 sekunder til 600 sekunder,
+			og en verdi på 2 øker pausen fra 120 sekunder til 240 sekunder. 
+			</td>
+		</tr>
+		<tr>
+			<td>trace-level</td>
+			<td>0 | 1 | 2</td>
+			<td>Trace-level styrer hvor mye Broadcaster skriver til Minecraft-loggen.
+			<br>0: Kun melinger om innlasting av pluginen i Minecraft samt feilsituasjoner logges.
+			<br>1: I tillegg til meldinger av type 0 logges lasting av plugin-klasser 
+			og verdier innlest fra datafilen.
+			<br>2: I tillegg til meldinger av type 0 og 1 logges forsendelse av hver 
+			enkelt melding som sendes. Dette nivået bør kun brukes under testing, 
+			samt i produksjon der man mistenker at broadcasteren feiler.  
+			</td>
+		</tr>
+		<tr>
+			<td>data-source</td>
+			<td>local</td>
+			<td>Denne må alltid være <b>local.</b> 
+			For fremtidig bruk. 
+			Parameteren er tenkt benyttet i senere versjoner hvor meldinger skal kunne lagres i en database.  
+			</td>
+		</tr>
+		<tr class="tr-top">
+			<td colspan=3><b>Meldings-noden</b></td>
+		</tr>
+		<tr>
+			<td><b>Parameter</b></td>
+			<td><b>Eksempelverdi</b></td>
+			<td><b>Forklaring</b></td>
+		</tr>
+		<tr>
+			<td>type</td>
+			<td>startup | recurring</td>
+			<td>Denne angir når og hvordan meldingen skal vises. 
+			<b>startup</b> betyr at meldingen vises en gang ved oppstart,
+			<b>recurring</b> betyr at meldingen vises med gjevne mellomrom under spillet.
+			</td>
+		</tr>
+		<tr>
+			<td>enabled</td>
+			<td>0 | 1</td>
+			<td>Om denne er satt til '1' sendes denne meldingen til spillerne. 
+			Om den settes til '0' vil den ligge ubrukt i meldingsloggen</td>
+		</tr>
+		<tr>
+			<td>message</td>
+			<td>\u00A79Dette er en blå melding
+			</td>
+			<td>
+			Meldingen som skal sendes til brukerne. 
+			Meldingen kan formatteres med MOTD formatteringskoder som beskrevet på
+			Gamepedias side med 
+			<a href="http://minecraft.gamepedia.com/Formatting_codes" target="_blank">
+			Minecraft formatteringskoder.</a>
+			</td>
+		</tr>
+	</table>
+
+<h4>Eksempel på RC-Broadcaster.json</h4>
+<pre>
+{
+  'header': {
+    'type':'rc-broadcaster',
+    'ver':'1.0'
+  },
+  'settings':{
+    'frequence':120,
+    'slowdown-count':10,
+    'slowdown-factor':5,
+    'trace-level':1,
+    'data-source':'local'
+  }
+  'messages':[
+    {'type':'startup', 'enabled='1', 'message':'Denne meldingen kommer fra RC-Broadcaster'},
+    {'type':'startup', 'enabled='1', 'message':'Andre meldingstekst'},
+    {'type':'startup', 'enabled='0', 'message':'Denne tredje meldingen vises ikke'},
+    {'type':'recurring', 'enabled='1', 'message':'Den fjerde melingsteksten vises gjentatte ganger'}
+  ]
+}
+</pre>
+<i>(Eksiserende versjon av RC-Broadcaster skriver json til 
+fil uten å formattere med linjeskift. 
+<br>Om man ønsker en fil med bedre lesbarhet, må dette gjøres manuelt ved redigering).</i>
+<h3>Diverse kommentarer</h3>
+<h4>Planlagte endringer</h4>
+Planlagte endringer for versjon 1 innbefatter:
+<ul>
+	<li>Datafilen bør kunne lastes på annen måte enn ved omstart av Minecraft, 
+	for eksempel ved kommando fra klient eller server.</li>
+	<li>Skreddersydde meldinger for hver enkelt bruker 
+	bør kunne opprettes og vises for brukerne på vanlig måte.</li>
+	<li>I tillegg til MOTD-koder for formattering av meldinger, 
+	er det ønskelig at $-koder kan brukes.</li>
+</ul>
+Følgende endringer er planlagt for versjon 2:
+<ul>
+	<li>Data bør kunne lagres i en SQL-database, 
+	og kunne vedlikeholdes ved hjelp av kommandolinje-kommandoer 
+	eller et web-grensesnitt.</li>
+</ul>
+
+<br>
+<br>Fotnoter:
+<br>Ingen.
+<hr>
+<div style="width:100%; font-size: 60%">
+This document is Copyright &copy; Hans Olav Sorteberg 2016.
+<br>It is published under the CC BY-SE 3.0 license, see <a href="http://creativecommons.org">http://creativecommons.org</a>. 
+</div>
+</div>
+</body>
+</html>

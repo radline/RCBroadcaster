@@ -14,7 +14,10 @@ public class MessageProcessor {
 	// The userStatusList contains a list containing 
 	// information about all users logged on since last server restart.
 	private UserStatusList userStatusList;
-	
+
+	private int slowdownLimit;
+	private int slowdownFactor;
+	private int slowdownShowCounter=0;
 	// Messages from the dataFile are stored in arrays, one for 
 	// startup messages and one for recurring messages.
 	private List<String> startupMessages = new ArrayList<String>();
@@ -26,10 +29,15 @@ public class MessageProcessor {
 	public MessageProcessor(
 			BCLogger logger, 
 			JSONArray messageArray, 
-			UserStatusList userStatusList) {
+			UserStatusList userStatusList,
+			int slowdownLimit,
+			int slowdownFactor
+			) {
 		try{
 			this.logger = logger;
 			this.userStatusList = userStatusList;
+			this.slowdownLimit = slowdownLimit;
+			this.slowdownFactor = slowdownFactor;
 			
 			// check all messages in the JSON and split them
 			// into the two message objects.
@@ -38,11 +46,11 @@ public class MessageProcessor {
 			{
 			    JSONObject msg = (JSONObject)messageArray.get(i);
 			    String msgType = (String)msg.get("type");
-			    if(msgType.equals("startup") && (int)msg.get("type") == 1){
+			    if(msgType.equals("startup") && (long)msg.get("enabled") == 1L){
 			    	startupMessages.add((String)msg.get("message"));
 			    	logger.log(3,"Startup message loaded: " + (String)msg.get("message"));
 			    }
-			    else if(msgType.equals("recurring") && (int)msg.get("type") == 1){
+			    else if(msgType.equals("recurring") && (long)msg.get("enabled") == 1L){
 			    	recurringMessages.add((String)msg.get("message"));
 			    	logger.log(3,"Recurring message loaded: " + (String)msg.get("message"));
 			    }
@@ -53,9 +61,11 @@ public class MessageProcessor {
 			logger.log(0,"MessageProcessor construction: FALSE. " + e.getMessage());
 		}
 	}
+
 	public boolean SendMessages()
 	{
 		try{
+			slowdownShowCounter++;
 		    for (int i = 0 ; i < userStatusList.size(); i++) {
 		    	UserStatus userStatus = userStatusList.get(i);
 		    	if(userStatus != null)
@@ -66,7 +76,6 @@ public class MessageProcessor {
 			    				userStatus.player.sendMessage(
 			    						startupMessages.get(
 			    								userStatus.nextMessage));
-
 					    		userStatus.nextMessage++;
 					    		logger.log(2,
 					    				"Sendt startup message " 
@@ -83,21 +92,26 @@ public class MessageProcessor {
 		    			}
 		    			else{ //Modus == 1
 			    			if(userStatus.nextMessage < recurringMessages.size()){
-			    				userStatus.player.sendMessage(
-			    						recurringMessages.get(
-			    								userStatus.nextMessage));
-
-					    		logger.log(2,
-					    				"Sendt recurring message " 
-					    				+ userStatus.nextMessage 
-					    				+ " (" + recurringMessages.get(
-			    								userStatus.nextMessage) + ")"
-					    				+ " to " 
-					    				+ userStatus.player.getName()); 
-
-					    		userStatus.nextMessage++;
-}
+			    
+	    						if(userStatus.slowdownCounter < slowdownLimit
+	    								|| slowdownShowCounter == slowdownFactor){
+				    				userStatus.player.sendMessage(
+				    						recurringMessages.get(
+				    								userStatus.nextMessage));
+	
+						    		logger.log(2,
+						    				"Sendt recurring message " 
+						    				+ userStatus.nextMessage 
+						    				+ " (" + recurringMessages.get(
+				    								userStatus.nextMessage) + ")"
+						    				+ " to " 
+						    				+ userStatus.player.getName()); 
+	
+						    		userStatus.nextMessage++;
+	    						}
+			    			}
 			    			else{
+			    				userStatus.slowdownCounter++;
 			    				userStatus.nextMessage = 0;
 			    			}
 		    			}
@@ -107,12 +121,15 @@ public class MessageProcessor {
 		    		} //else (userStatus.joined)
 		    	} //if(userStatus != null)
 		    }
+			if(slowdownShowCounter == slowdownFactor)
+				slowdownShowCounter=0;
 			return true;
 		}
 		catch(Exception e){
 			logger.log(0,"MessageProcessor construction: FALSE. " + e.getMessage());
 			return false;
 		}
+		
 		
 	}
 	

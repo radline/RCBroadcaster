@@ -132,10 +132,10 @@ public class BCDataFile {
 				logger.log(0,"Data file: " + jPluginName +  " is an invalid plugin name.");
 				return mainObj;
 			}
-			
+
 			// Set the loggers trace level
-			logger.setMaxLevel((int)settingsObj.get("trace-level")); 
-			
+			logger.setMaxLevel((int)((long)settingsObj.get("debug-level"))); 
+
 			// Return the entire file
 			logger.log(2,"Data file parsing: OK");
 	        return mainObj;

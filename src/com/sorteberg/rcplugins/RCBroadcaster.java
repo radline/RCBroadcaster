@@ -41,6 +41,7 @@ public class RCBroadcaster extends JavaPlugin{
         	    getLogger().info("Data file found.");
     		}
     		
+
     		JSONObject dataFile = BCDataFile.parseDataFile();
     		if(dataFile == null){
     			logger.log(0,"The data file is not received by the Plugin class.");
@@ -51,11 +52,13 @@ public class RCBroadcaster extends JavaPlugin{
     		// The scheduler needs a pointer to the Message processor.
     		// This must be created before the creation of the scheduler.
     		//
-
+    		JSONObject settings = (JSONObject)dataFile.get("settings");
 			messageProcessor = new MessageProcessor(
 					logger,
 					(JSONArray) dataFile.get("messages"),
-					userStatusList
+					userStatusList,
+					(int)((long)settings.get("slowdown-count")),
+					(int)((long)settings.get("slowdown-factor"))
 					);
 			if(messageProcessor == null){
 				logger.log(0,"Error creating the Message Processor.");
@@ -89,7 +92,7 @@ public class RCBroadcaster extends JavaPlugin{
         	    		new BCListener(userStatusList), 
         	    		this);
         	    
-        	    
+
         	    bcScheduler.Schedule();
         	    logger.log(1,"Broadcaster enabled successfully.");
     	    }
