@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -13,9 +15,14 @@ import org.json.simple.parser.ParseException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+//import com.sorteberg.rcplugins.BCScheduler.RemindTask;
 
 
 public class BCDataFile {
+
+	// A timer will check the data file for changes regulary.
+	private Timer timer;
+	private long datafileLoadedTS;
 	
 	// All data will be stored in RC-Broadcaster.json in the
 	// plugin's default data folder.
@@ -32,8 +39,21 @@ public class BCDataFile {
 
 	// Pointers to the logger and data folder are received via constructor.
 	public BCDataFile(BCLogger logger, File dataFolder) {
-		this.logger = logger;
-		this.dataFolder = dataFolder;
+
+		try{
+			this.logger = logger;
+			this.dataFolder = dataFolder;
+			SetChangeTS();
+			timer = new Timer();
+			Schedule();
+		}
+		catch (NullPointerException e) {
+			logger.log(0,"Error constructing BCDatafile" + e.toString());
+		}
+		catch (Exception e) {
+			logger.log(0,"Error constructing BCDatafile" + e.toString());
+		}
+		
 	}
 
 	// Returns true if the dataFolder is created. 
@@ -55,6 +75,17 @@ public class BCDataFile {
 			return true;
 		else
 			return false;
+	}
+
+	private void SetChangeTS()
+	{
+		try{
+			File file = new File(dataFolder, dataFileName);
+			datafileLoadedTS = file.lastModified();
+		}
+		catch (Exception e) {
+			logger.log(0,"Error storing last file date: " + e.toString());
+		}
 	}
 	
 	// Creates a new data file with default content.
@@ -103,9 +134,12 @@ public class BCDataFile {
 				file.write(gson.toJson(mainObj));
 			}
 			
-		} catch (IOException e) {
+		} 
+		catch (IOException e) {
 			return false;
 		}
+		
+		SetChangeTS();		
 		return true;
 	}
 
@@ -152,4 +186,38 @@ public class BCDataFile {
 			return null;		
 		}
 	}
+	
+	//
+	public void Schedule(){
+		try{
+			logger.log(2,"Checking data file date.");
+			timer.schedule(new FileCheckerTask(), 10 * 1000);
+		}
+		catch(Exception e){
+			logger.log(0,"BCDataFile.Schedule: " + e.getMessage());
+		}
+	}
+
+	// The timer task executed each time our local timer fires.
+	class FileCheckerTask extends TimerTask {
+		
+		public void run() {
+			try{
+				logger.log(2,"Checking data file date.");
+				File file = new File(dataFolder, dataFileName);
+				long timeStamp = file.lastModified();
+				if(timeStamp != datafileLoadedTS){
+					parseDataFile();
+					logger.log(1,"Datafile changed. Reloading file.");
+					SetChangeTS();
+					}
+			}
+			catch(Exception e){
+				logger.log(0,"RemindTask.run: ERROR " + e.getMessage());
+			}
+			Schedule();
+			
+		}
+	}
+
 }
